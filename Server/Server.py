@@ -27,9 +27,9 @@ bindsocket.listen(5)
 while True:
     print("Waiting for client")
     newsocket, fromaddr = bindsocket.accept()
-    print("Client connected: {}:{}".format(fromaddr[0], fromaddr[1])"\n")
+    print("Client connected: {}:{}".format(fromaddr[0], fromaddr[1]))
     conn = context.wrap_socket(newsocket, server_side=True)
-    print("SSL established. Peer: {}".format(conn.getpeercert())"\n")
+    print("SSL established. Peer: {}".format(conn.getpeercert()))
 
     try:
         # Receive the data in small chunks
@@ -38,7 +38,30 @@ while True:
 
             if(action):
 
+                if(action == 'write'):
+                    username = bytes.decode(conn.recv(4096), 'utf-8')
+                    password = bytes.decode(conn.recv(4096), 'utf-8')
+                    email = bytes.decode(conn.recv(4096), 'utf-8')
 
+                    conn.sendall(bytes(ps.MakeUser(username, password, email), 'utf-8'))
+
+
+                if(action == 'read'):
+                    username = bytes.decode(conn.recv(4096), 'utf-8')
+                    password = bytes.decode(conn.recv(4096), 'utf-8')
+
+                    conn.sendall(bytes(ps.CallUser(username, password), 'utf-8'))
+
+
+                if(action == 'UpdateEmail'):
+                    key = bytes.decode(conn.recv(4096), 'utf-8')
+                    newEmail = bytes.decode(conn.recv(4096), 'utf-8')
+
+                    conn.sendall(bytes(ps.UpdateEmail(key, newEmail), 'utf-8'))
 
             else:
                 break
+
+    finally:
+        # Clean up the connection
+        conn.close()
